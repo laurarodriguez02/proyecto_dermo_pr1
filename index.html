@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Análisis de Lesiones en la Piel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f8f8f8;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+    }
+
+    .left-frame,
+    .right-frame {
+      flex: 1;
+      background-color: #f2f2f2;
+      margin: 0 10px;
+      padding: 20px;
+      border-radius: 5px;
+    }
+
+    .left-frame {
+      color: #005a8d;
+    }
+
+    .right-frame {
+      color: #333333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #005a8d;
+      font-family: 'Arial Black', sans-serif;
+      font-weight: 400;
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+
+    p {
+      color: #666666;
+      font-size: 16px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .button {
+      display: block;
+      margin: 0 auto;
+      background-color: #007bff;
+      color: #ffffff;
+      padding: 10px 20px;
+      margin-top: 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+      font-family: Arial, sans-serif;
+      font-weight: 300;
+      font-size: 16px;
+    }
+
+    .button:hover {
+      background-color: #0056b3;
+    }
+
+    .upload-btn {
+      display: none;
+    }
+
+    .file-info {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #666666;
+    }
+
+    h2 {
+      color: #005a8d;
+      font-family: 'Arial Black', sans-serif;
+      font-weight: 400;
+      font-size: 24px;
+      margin-top: 30px;
+      margin-bottom: 10px;
+    }
+
+    ul {
+      color: #666666;
+      margin-left: 20px;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    
+    .section {
+      border-top: 1px solid #ccc;
+      padding-top: 20px;
+      margin-top: 20px;
+    }
+
+    .credits {
+      margin-top: 30px;
+      text-align: center;
+      font-family: 'Arial', sans-serif;
+    }
+
+    .university-logo {
+      display: block;
+      margin: 0 auto;
+      width: 200px;
+      max-width: 100%;
+    }
+
+    .progress-bar {
+      width: 100%;
+      background-color: #f2f2f2;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .progress-bar-inner {
+      width: 0%;
+      height: 10px;
+      background-color: #007bff;
+      transition: width 0.3s;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Arial+Black&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="container">
+    <div class="left-frame">
+      <h1>Analizador de Lesiones en la Piel</h1>
+      <p>Analizador de imágenes en línea de los tres diagnósticos más probables para una lesión en la piel.</p>
+
+      <div class="w3-center">
+        <div align="center">
+          <img id="selected-image" class="w3-round adjust-image" src="assets/samplepic.jpg" alt="">
+        </div>
+      </div>
+    </div>
+
+    <div class="right-frame">
+      <div class="w3-center add-padding w3-border add-margin side-margin w3-round w3-pale-blue">
+        <h5 class='new-font'>Resultados</h5>
+        <ol class='w3-left-align' id='prediction-list'></ol>
+      </div>
+
+      <div class="section">
+        <form id="upload-form" style="text-align: center;">
+          <input type="file" id="image-selector" class="upload-btn" accept="image/*">
+          <label for="image-selector" class="button">Cargar imagen</label>
+          <div class="progress-bar">
+            <div class="progress-bar-inner" id="progress-bar-inner"></div>
+          </div>
+        </form>
+
+        <div id="file-info" class="file-info"></div>
+
+        <button id="predict-button" class="button">Realizar predicción</button>
+        <div class="progress-bar">
+          <div class="progress-bar-inner" id="prediction-progress-bar-inner"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Características técnicas del Modelo:</h2>
+        <ul id="model-features">
+          <li>Exactitud:</li>
+          <li>Precisión:</li>
+          <li>Sensibilidad:</li>
+        </ul>
+
+        <p>El entrenamiento del modelo está basado en el conjunto de 10015 imágenes dermatoscópicas de Harvard, entrenado con Tensorflow.</p>
+      </div>
+
+      <div class="credits">
+        <p>Realizado por: Gustavo Camargo, Andrés Rico y Alejandro Ibarra</p>
+      </div>
+
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Logo_de_la_Universidad_El_Bosque.svg/800px-Logo_de_la_Universidad_El_Bosque.svg.png" alt="Universidad del Bosque" class="university-logo">
+    </div>
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.13.3/dist/tf.min.js"></script>
+  <script src="jscript/target_classes.js"></script>
+  <script src="jscript/predict100.js"></script>
+  <script>
+    $(document).ready(function() {
+      let model;
+
+      // Simular un clic en el botón de predicción cuando se carga la página
+      function predictOnLoad() {
+        setTimeout(function() {
+          $("#predict-button").click();
+        }, 500);
+      }
+
+      // Evento change del selector de imagen
+      $("#image-selector").change(function() {
+        let reader = new FileReader();
+        reader.onload = function() {
+          let dataURL = reader.result;
+          $("#selected-image").attr("src", dataURL);
+          $("#prediction-list").empty();
+        };
+
+        let file = $("#image-selector").prop("files")[0];
+        reader.readAsDataURL(file);
+
+        // Simular un clic en el botón de predicción
+        // Esto introduce un retardo de 0,5 segundos antes del clic
+        // Sin este retardo, el modelo se carga pero no puede predecir automáticamente
+        setTimeout(function() {
+          $("#predict-button").click();
+        }, 500);
+      });
+
+      // Carga del modelo y predicción al cargar la página
+      (async function() {
+        model = await tf.loadModel("model_kerasnative_v4/model.json");
+        $("#selected-image").attr("src", "assets/samplepic.jpg");
+
+        // Ocultar la barra de progreso del modelo
+        $(".progress-bar").hide();
+
+        // Cargar características del modelo
+        $("#model-features li").eq(0).text("Exactitud: " + MODEL_FEATURES.accuracy.toFixed(2));
+        $("#model-features li").eq(1).text("Precisión: " + MODEL_FEATURES.precision.toFixed(2));
+        $("#model-features li").eq(2).text("Sensibilidad: " + MODEL_FEATURES.sensitivity.toFixed(2));
+
+        // Simular un clic en el botón de predicción
+        predictOnLoad();
+      })();
+
+      // Evento click del botón de predicción
+      $("#predict-button").click(async function() {
+        let image = $("#selected-image").get(0);
+
+        // Preprocesar la imagen
+        image.width = 600;
+        image.height = 450;
+
+        let tensor = tf.fromPixels(image)
+          .resizeNearestNeighbor([224, 224])
+          .toFloat();
+
+        let offset = tf.scalar(127.5);
+        tensor = tensor.sub(offset)
+          .div(offset)
+          .expandDims();
+
+        let predictions = await model.predict(tensor).data();
+        let top5 = Array.from(predictions)
+          .map(function(p, i) {
+            return {
+              probability: p,
+              className: TARGET_CLASSES[i]
+            };
+          })
+          .sort(function(a, b) {
+            return b.probability - a.probability;
+          })
+          .slice(0, 6);
+
+        $("#prediction-list").empty();
+        top5.forEach(function(p) {
+          $("#prediction-list").append(`<li>${p.className}: ${p.probability.toFixed(6)}</li>`);
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
